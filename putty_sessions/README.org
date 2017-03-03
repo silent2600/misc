@@ -1,0 +1,14 @@
+
+* putty session list patch
+  base on http://sedlacek.biz/putty/session-list-patch/
+  this one is for putty 0.68
+* usage:
+
+#+BEGIN_EXAMPLE
+patch -p1 < putty_session.patch
+perl mkfiles.pl
+cd windows
+gmake -f Makefile.mgw
+# OR
+gmake -f Makefile.mgw putty.exe
+#+END_EXAMPLE
