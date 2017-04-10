@@ -1,0 +1,148 @@
+diff -burN putty-0.68/config.c putty-0.68.1/config.c
+--- putty-0.68/config.c	2017-02-19 01:10:15.000000000 +0800
++++ putty-0.68.1/config.c	2017-04-10 16:56:03.573517900 +0800
+@@ -170,10 +170,10 @@
+ 	     * This label text is carefully chosen to contain an n,
+ 	     * since that's the shortcut for the host name control.
+ 	     */
+-	    dlg_label_change(ctrl, dlg, "Serial line");
++	    // dlg_label_change(ctrl, dlg, "Serial line");
+ 	    dlg_editbox_set(ctrl, dlg, conf_get_str(conf, CONF_serline));
+ 	} else {
+-	    dlg_label_change(ctrl, dlg, HOST_BOX_TITLE);
++	  // dlg_label_change(ctrl, dlg, HOST_BOX_TITLE);
+ 	    dlg_editbox_set(ctrl, dlg, conf_get_str(conf, CONF_host));
+ 	}
+     } else if (event == EVENT_VALCHANGE) {
+@@ -1384,10 +1384,10 @@
+     /*
+      * The Session panel.
+      */
+-    str = dupprintf("Basic options for your %s session", appname);
++    /*    str = dupprintf("Basic options for your %s session", appname);
+     ctrl_settitle(b, "Session", str);
+     sfree(str);
+-
++    */
+     if (!midsession) {
+ 	struct hostport *hp = (struct hostport *)
+ 	    ctrl_alloc(b, sizeof(struct hostport));
+@@ -1395,12 +1395,12 @@
+ 	s = ctrl_getset(b, "Session", "hostport",
+ 			"Specify the destination you want to connect to");
+ 	ctrl_columns(s, 2, 75, 25);
+-	c = ctrl_editbox(s, HOST_BOX_TITLE, 'n', 100,
++	c = ctrl_editbox(s, NULL, 'n', 100,
+ 			 HELPCTX(session_hostname),
+ 			 config_host_handler, I(0), I(0));
+ 	c->generic.column = 0;
+ 	hp->host = c;
+-	c = ctrl_editbox(s, PORT_BOX_TITLE, 'p', 100,
++	c = ctrl_editbox(s, NULL, 'p', 100,
+ 			 HELPCTX(session_hostname),
+ 			 config_port_handler, I(0), I(0));
+ 	c->generic.column = 1;
+@@ -1408,7 +1408,7 @@
+ 	ctrl_columns(s, 1, 100);
+ 
+ 	if (!backend_from_proto(PROT_SSH)) {
+-	    ctrl_radiobuttons(s, "Connection type:", NO_SHORTCUT, 3,
++	    ctrl_radiobuttons(s, NULL, NO_SHORTCUT, 3,
+ 			      HELPCTX(session_hostname),
+ 			      config_protocolbuttons_handler, P(hp),
+ 			      "Raw", 'w', I(PROT_RAW),
+@@ -1416,7 +1416,7 @@
+ 			      "Rlogin", 'i', I(PROT_RLOGIN),
+ 			      NULL);
+ 	} else {
+-	    ctrl_radiobuttons(s, "Connection type:", NO_SHORTCUT, 4,
++	    ctrl_radiobuttons(s, NULL, NO_SHORTCUT, 4,
+ 			      HELPCTX(session_hostname),
+ 			      config_protocolbuttons_handler, P(hp),
+ 			      "Raw", 'w', I(PROT_RAW),
+@@ -1435,7 +1435,7 @@
+ 		    "Load, save or delete a stored session");
+     ctrl_columns(s, 2, 75, 25);
+     get_sesslist(&ssd->sesslist, TRUE);
+-    ssd->editbox = ctrl_editbox(s, "Saved Sessions", 'e', 100,
++    ssd->editbox = ctrl_editbox(s, NULL, 'e', 100,
+ 				HELPCTX(session_saved),
+ 				sessionsaver_handler, P(ssd), P(NULL));
+     ssd->editbox->generic.column = 0;
+@@ -1447,7 +1447,7 @@
+ 				HELPCTX(session_saved),
+ 				sessionsaver_handler, P(ssd));
+     ssd->listbox->generic.column = 0;
+-    ssd->listbox->listbox.height = 7;
++    ssd->listbox->listbox.height = 20;
+     if (!midsession) {
+ 	ssd->loadbutton = ctrl_pushbutton(s, "Load", 'l',
+ 					  HELPCTX(session_saved),
+diff -burN putty-0.68/mkfiles.pl putty-0.68.1/mkfiles.pl
+--- putty-0.68/mkfiles.pl	2017-02-19 01:10:15.000000000 +0800
++++ putty-0.68.1/mkfiles.pl	2017-03-03 13:23:15.219811100 +0800
+@@ -578,6 +578,7 @@
+     "# TOOLPATH = c:\\cygwin\\bin\\ # or similar, if you're running Windows\n".
+     "# TOOLPATH = /pkg/mingw32msvc/i386-mingw32msvc/bin/\n".
+     "# TOOLPATH = i686-w64-mingw32-\n".
++    "COMPAT = -DNO_MULTIMON\n".
+     "CC = \$(TOOLPATH)gcc\n".
+     "RC = \$(TOOLPATH)windres\n".
+     "# Uncomment the following two lines to compile under Winelib\n".
+diff -burN putty-0.68/windows/win_res.rc2 putty-0.68.1/windows/win_res.rc2
+--- putty-0.68/windows/win_res.rc2	2017-02-19 01:10:16.000000000 +0800
++++ putty-0.68.1/windows/win_res.rc2	2017-04-10 17:04:24.943194600 +0800
+@@ -28,7 +28,7 @@
+ END
+ 
+ /* Accelerators used: aco */
+-IDD_MAINBOX DIALOG DISCARDABLE 0, 0, 300, 252
++IDD_MAINBOX DIALOG DISCARDABLE 0, 0, 300, 288
+ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+ CAPTION "PuTTY Configuration"
+ FONT 8, "MS Shell Dlg"
+diff -burN putty-0.68/windows/windlg.c putty-0.68.1/windows/windlg.c
+--- putty-0.68/windows/windlg.c	2017-02-19 01:10:16.000000000 +0800
++++ putty-0.68.1/windows/windlg.c	2017-04-10 17:03:33.395246200 +0800
+@@ -353,7 +353,7 @@
+ 	/*
+ 	 * Here we must create the basic standard controls.
+ 	 */
+-	ctlposinit(&cp, hwnd, 3, 3, 235);
++	ctlposinit(&cp, hwnd, 3, 3, 271);
+ 	wc = &ctrls_base;
+ 	base_id = IDCX_STDBASE;
+     } else {
+@@ -361,7 +361,7 @@
+ 	 * Otherwise, we're creating the controls for a particular
+ 	 * panel.
+ 	 */
+-	ctlposinit(&cp, hwnd, 100, 3, 13);
++	ctlposinit(&cp, hwnd, 100, 3, 3);
+ 	wc = &ctrls_panel;
+ 	base_id = IDCX_PANELBASE;
+     }
+@@ -421,7 +421,7 @@
+ 	{
+ 	    RECT r;
+ 	    WPARAM font;
+-	    HWND tvstatic;
++	    /*	    HWND tvstatic;
+ 
+ 	    r.left = 3;
+ 	    r.right = r.left + 95;
+@@ -436,11 +436,11 @@
+ 				      NULL);
+ 	    font = SendMessage(hwnd, WM_GETFONT, 0, 0);
+ 	    SendMessage(tvstatic, WM_SETFONT, font, MAKELPARAM(TRUE, 0));
+-
++	    */
+ 	    r.left = 3;
+ 	    r.right = r.left + 95;
+-	    r.top = 13;
+-	    r.bottom = r.top + 219;
++	    r.top = 3;
++	    r.bottom = r.top + 265;
+ 	    MapDialogRect(hwnd, &r);
+ 	    treeview = CreateWindowEx(WS_EX_CLIENTEDGE, WC_TREEVIEW, "",
+ 				      WS_CHILD | WS_VISIBLE |
